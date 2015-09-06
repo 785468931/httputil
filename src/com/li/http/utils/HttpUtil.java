@@ -61,15 +61,29 @@ public class HttpUtil {
 	        buider.append(line);
 	    }  
 	    return buider.toString();
-	}  
+	} 
+	private static SSLContext buildSSLContext()
+            throws NoSuchAlgorithmException, KeyManagementException,
+            KeyStoreException {
+        SSLContext sslcontext = SSLContexts.custom()
+                .setSecureRandom(new SecureRandom())
+                .loadTrustMaterial(null, new TrustStrategy() {
+                    public boolean isTrusted(X509Certificate[] chain, String authType)
+                            throws CertificateException {
+                        return true;
+                    }
+                })
+                .build();
+        return sslcontext;
+    }
 	public static void main(String[] args) throws Exception {
 		
 	}
 	
 	/**
 	 * https请求，请求内容存body里
-	 * @param httpurl
-	 * @param sendStr
+	 * @param httpurl 请求地址
+	 * @param sendStr 请求的数据
 	 * @return
 	 */
 	public static String httpsRequest(String httpurl,String sendStr){
@@ -118,20 +132,7 @@ public class HttpUtil {
         return result;
 	}
   
-  private static SSLContext buildSSLContext()
-            throws NoSuchAlgorithmException, KeyManagementException,
-            KeyStoreException {
-        SSLContext sslcontext = SSLContexts.custom()
-                .setSecureRandom(new SecureRandom())
-                .loadTrustMaterial(null, new TrustStrategy() {
-                    public boolean isTrusted(X509Certificate[] chain, String authType)
-                            throws CertificateException {
-                        return true;
-                    }
-                })
-                .build();
-        return sslcontext;
-    }
+  
 
 	 /** 
    * 下载文件保存到本地 
@@ -281,11 +282,11 @@ public class HttpUtil {
 	
 	/**
 	 * http 请求
-	 * @param jurl
-	 * @param data
+	 * @param jurl 请求地址
+	 * @param data 请求参数， key为name ， value为值
 	 * @return
 	 */
-	public  static String requestJoysim(String jurl, Map<String,String> data){
+	public  static String requestPost(String jurl, Map<String,String> data){
 		HttpPost post = new HttpPost(jurl); 
 		List<NameValuePair> params = new ArrayList<NameValuePair>();  
 		for(String name: data.keySet()) {
