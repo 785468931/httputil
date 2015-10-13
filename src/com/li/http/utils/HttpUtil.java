@@ -11,9 +11,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.SSLContext;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -27,27 +35,19 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.SSLContext;
-
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.entity.StringEntity;
 import org.apache.log4j.Logger;
+
+import net.sf.json.JSONObject;
 
 @SuppressWarnings({ "deprecation", "resource" })
 public class HttpUtil {
@@ -77,7 +77,38 @@ public class HttpUtil {
         return sslcontext;
     }
 	public static void main(String[] args) throws Exception {
+//		gtype: "个人约战" || "球队约战"
+//		httpRequest("http://qym.fandongkj.com/qdate/game/listAll","{\"gpsaddr\":\"113.382872,23.126194\",\"gform\":\"四人场\",\"page\":0,\"qdate\":\"2015-09-18\",\"userid\":\"1a074723-2023-4275-a001-1fe8d40d5cee\",\"addr\":\"东莞\",\"size\":20,\"isothertime\":true}");
+//		httpRequest("http://127.0.0.1:8080/qdate/game/listAll","{\"gpsaddr\":\"113.382872,23.126194\",\"gtype\":\"球队约战\",\"gform\":\"四人场\",\"page\":0,\"qdate\":\"2015-09-18\",\"userid\":\"1a074723-2023-4275-a001-1fe8d40d5cee\",\"addr\":\"东莞\",\"size\":20,\"isothertime\":true}");
+//		httpRequest("http://127.0.0.1:8080/qdate/game/cancel","{\"userid\":\"357deac5-32e1-42ce-b452-1b67cfba7b70\",\"gameid\":\"a6a4bb21-4266-48cc-b37b-debae17d129d\"}");
+//		httpRequest("http://127.0.0.1:8080/qdate/activity/list","{\"gpsaddr\":\"113.388685,23.127251\",\"userid\":\"1a074723-2023-4275-a001-1fe8d40d5cee\",\"tab\":\"附近\",\"page\":0,\"size\":20}");
+//		httpRequest("http://127.0.0.1:8080/qdate/message/list","{\"userid\":\"f2b1128d-6f01-4e05-9c2b-d8a4b490789b\",\"page\":1,\"size\":10}");
+	
+//		httpRequest("http://127.0.0.1:8080/qdate/comment/aboutme","{\"userid\":\"f2b1128d-6f01-4e05-9c2b-d8a4b490789b\",\"page\":0,\"size\":20}");
 		
+//		JSONObject json=new JSONObject();
+//		json.put("bacth", "9d4c0aa494f4309ab34c00308be8");
+//		httpRequest("http://qym.fandongkj.com/qdate/bacthListUser",json.toString());
+//		httpRequest("http://qym.fandongkj.com/qdate/listuser",json.toString());
+//		httpRequest("http://qym.fandongkj.com/qdate/sendvericode","{\"mobile\":\"13826026260\",\"page\":0,\"size\":20}");
+		
+		
+		
+//		JSONObject json=new JSONObject();
+//		json.put("name", "abc");
+//		json.put("mobile", "13826026260");
+//		json.put("passwd", "1166");
+//		json.put("gpsaddr", "113.25803,23.116447");
+//		httpsRequest("http://127.0.0.1:8080/qdate/usrregis",json.toString());
+//		{"userid":"f2b1128d-6f01-4e05-9c2b-d8a4b490789b","gameid":"a907c60b-0a1c-48e0-8570-a27613c89918"}
+		JSONObject json=new JSONObject();
+		json.put("norm", "13826026260");
+		json.put("passwd", "111111");
+		
+//		String response = HttpUtil.httpsRequest("https://120.27.54.38:443/qdate/usrlogin", json.toString());
+        String response = HttpUtil.httpRequest("http://120.27.54.38/qdate/usrlogin", json.toString());
+
+	
 	}
 	
 	/**
@@ -103,10 +134,10 @@ public class HttpUtil {
 			System.out.println("发送地址："+httpPost);
 			CloseableHttpResponse response = httpclient.execute(httpPost);
 			HttpEntity entity = response.getEntity();
+			System.out.println(response.getStatusLine());
 		      InputStream in = entity.getContent(); 
 				try {
 					result=readResponse(in);
-					System.out.println(result);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -129,6 +160,45 @@ public class HttpUtil {
 			e.printStackTrace();
 		}
         
+        return result;
+	}
+	/**
+	 * https请求，请求内容存body里
+	 * @param httpurl 请求地址
+	 * @param sendStr 请求的数据
+	 * @return
+	 */
+	public static String httpRequest(String httpurl,String sendStr){
+		String result = "";
+		try {
+			CloseableHttpClient httpclient  = HttpClients.createDefault();
+			
+			HttpPost httpPost = new HttpPost(httpurl);
+			httpPost.setEntity(new StringEntity(sendStr));
+			RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(8000)
+					.setConnectTimeout(8000).setSocketTimeout(8000).build();
+			httpPost.setConfig(requestConfig);
+			
+			System.out.println("发送地址："+httpPost);
+			CloseableHttpResponse response = httpclient.execute(httpPost);
+			HttpEntity entity = response.getEntity();
+			System.out.println(response.getStatusLine());
+		      InputStream in = entity.getContent(); 
+				try {
+					result=readResponse(in);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			System.out.println("response message:" + result);
+		}catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		}  catch (IOException e) {
+			e.printStackTrace();
+		}
         return result;
 	}
   
